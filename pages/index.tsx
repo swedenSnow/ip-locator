@@ -199,8 +199,8 @@ export default function IPLocator() {
         ...(data.gpsCity
           ? [
               {
-                label: 'Street Address (GPS)',
-                value: data.gpsStreetAddress,
+                label: 'GPS Coordinates',
+                value: 'Coordinates saved ✓',
                 icon: '◉',
                 color: '#ff00aa',
               },
@@ -518,7 +518,7 @@ export default function IPLocator() {
                       className="block p-6 text-center no-underline transition-all hover:bg-[rgba(0,204,255,0.05)]"
                       style={{ color: '#00ccff' }}
                     >
-                      <div className="mb-3 text-3xl">🗺️</div>
+                      <div className="mb-3 text-3xl">▽</div>
                       <div className="text-xs">View on OpenStreetMap →</div>
                     </Link>
                   </div>

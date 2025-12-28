@@ -29,7 +29,7 @@ interface VisitsResponse {
   error?: string;
 }
 
-function VisitCard({ visit, formatDate }: { visit: Visit; formatDate: (date: string) => string }) {
+function VisitCard({ visit, formatDate }: { visit: Visit; formatDate: (date: string) => { dateOnly: string; timeOnly: string } }) {
   const getStatusBadge = () => {
     if (visit.gpsPermissionStatus === 'granted') {
       return <span className="text-xs text-[#00ff88]">✓ Granted</span>;
@@ -88,35 +88,40 @@ function VisitCard({ visit, formatDate }: { visit: Visit; formatDate: (date: str
           </span>
         </div>
 
-        {/* GPS Street Address */}
+        {/* GPS Map Link */}
         <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
-          <span className="text-xs text-gray-600 uppercase">Street</span>
-          <span className="text-sm" style={{ color: visit.gpsStreetAddress ? '#00ccff' : 'inherit' }}>
-            {visit.gpsStreetAddress || '—'}
-          </span>
-        </div>
-
-        {/* Distance */}
-        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
-          <span className="text-xs text-gray-600 uppercase">Distance</span>
-          <span className="text-sm" style={{ color: visit.locationDistance ? '#00ccff' : 'inherit' }}>
-            {visit.locationDistance ? `${parseFloat(visit.locationDistance).toFixed(2)} km` : '—'}
-          </span>
+          <span className="text-xs text-gray-600 uppercase">Map</span>
+          {visit.gpsLatitude && visit.gpsLongitude ? (
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${visit.gpsLatitude}&mlon=${visit.gpsLongitude}&zoom=18`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm underline"
+              style={{ color: '#00ccff' }}
+            >
+              View on Map →
+            </a>
+          ) : (
+            <span className="text-sm">—</span>
+          )}
         </div>
 
         {/* Visited At */}
         <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
           <span className="text-xs text-gray-600 uppercase">Visited</span>
-          <span className="text-xs text-gray-600">{formatDate(visit.visitedAt)}</span>
+          <div className="flex flex-col text-xs text-gray-600">
+            <span>{formatDate(visit.visitedAt).dateOnly}</span>
+            <span>{formatDate(visit.visitedAt).timeOnly}</span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function VisitTableRow({ visit, formatDate }: { visit: Visit; formatDate: (date: string) => string }) {
+function VisitTableRow({ visit, formatDate }: { visit: Visit; formatDate: (date: string) => { dateOnly: string; timeOnly: string } }) {
   return (
-    <div className="hidden xl:grid xl:grid-cols-[60px_120px_150px_100px_150px_150px_100px_100px_100px_180px] gap-3 py-3 px-5 border-b border-white/[0.03] text-sm transition-colors hover:bg-white/[0.03]">
+    <div className="hidden xl:grid xl:grid-cols-[60px_120px_150px_100px_150px_150px_100px_100px_180px] gap-3 py-3 px-5 border-b border-white/[0.03] text-sm transition-colors hover:bg-white/[0.03]">
       <span className="text-gray-600">#{visit.id}</span>
       <span className="font-medium" style={{ color: '#00ff88' }}>
         {visit.ipAddress}
@@ -129,8 +134,20 @@ function VisitTableRow({ visit, formatDate }: { visit: Visit; formatDate: (date:
       <span className="text-xs" style={{ color: visit.gpsCity ? '#00ccff' : 'inherit' }}>
         {visit.gpsCity ? `${visit.gpsCity}${visit.gpsRegion ? `, ${visit.gpsRegion}` : ''}` : '—'}
       </span>
-      <span className="text-xs" style={{ color: visit.gpsStreetAddress ? '#00ccff' : 'inherit' }}>
-        {visit.gpsStreetAddress || '—'}
+      <span className="text-xs">
+        {visit.gpsLatitude && visit.gpsLongitude ? (
+          <a
+            href={`https://www.openstreetmap.org/?mlat=${visit.gpsLatitude}&mlon=${visit.gpsLongitude}&zoom=18`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+            style={{ color: '#00ccff' }}
+          >
+            View Map →
+          </a>
+        ) : (
+          '—'
+        )}
       </span>
       <span className="text-xs" style={{ color: visit.gpsZipCode ? '#00ccff' : 'inherit' }}>
         {visit.gpsZipCode || '—'}
@@ -152,10 +169,10 @@ function VisitTableRow({ visit, formatDate }: { visit: Visit; formatDate: (date:
               : visit.gpsPermissionStatus
           : '— No data'}
       </span>
-      <span className="text-xs" style={{ color: visit.locationDistance ? '#00ccff' : 'inherit' }}>
-        {visit.locationDistance ? `${parseFloat(visit.locationDistance).toFixed(2)} km` : '—'}
-      </span>
-      <span className="text-xs text-gray-600">{formatDate(visit.visitedAt)}</span>
+      <div className="flex flex-col text-xs text-gray-600">
+        <span>{formatDate(visit.visitedAt).dateOnly}</span>
+        <span>{formatDate(visit.visitedAt).timeOnly}</span>
+      </div>
     </div>
   );
 }
@@ -187,8 +204,11 @@ export default function AdminDashboard() {
     }
   };
 
-  const formatDate = (dateStr: string): string => {
-    return new Date(dateStr).toLocaleString();
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const dateOnly = date.toISOString().split('T')[0]; // yyyy-mm-dd
+    const timeOnly = date.toLocaleTimeString(); // HH:MM:SS AM/PM
+    return { dateOnly, timeOnly };
   };
 
   const handleLogout = async () => {
@@ -348,7 +368,7 @@ export default function AdminDashboard() {
           >
             {/* Table Header */}
             <div
-              className="hidden xl:grid xl:grid-cols-[60px_120px_150px_100px_150px_150px_100px_100px_100px_180px] gap-3 py-3.5 px-5 bg-black/30 text-[11px] text-gray-600 uppercase tracking-wide"
+              className="hidden xl:grid xl:grid-cols-[60px_120px_150px_100px_150px_150px_100px_100px_180px] gap-3 py-3.5 px-5 bg-black/30 text-[11px] text-gray-600 uppercase tracking-wide"
               style={{
                 borderBottom: '1px solid rgba(0, 255, 136, 0.1)',
               }}
@@ -358,10 +378,9 @@ export default function AdminDashboard() {
               <span>Location (IP)</span>
               <span>Country</span>
               <span>Location (GPS)</span>
-              <span>Street Address</span>
+              <span>GPS Map</span>
               <span>GPS ZIP</span>
               <span>GPS Status</span>
-              <span>Distance</span>
               <span>Visited At</span>
             </div>
 

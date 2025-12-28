@@ -57,11 +57,8 @@ async function reverseGeocode(
 
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`,
       {
-        headers: {
-          'User-Agent': 'IP-Locator-App/1.0',
-        },
         signal: controller.signal,
       }
     );
@@ -69,10 +66,27 @@ async function reverseGeocode(
     clearTimeout(timeout);
 
     if (!response.ok) {
-      throw new Error(`Nominatim API returned ${response.status}`);
+      throw new Error(`BigDataCloud API returned ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Transform BigDataCloud response to our NominatimResponse format
+    return {
+      address: {
+        road: data.localityInfo?.administrative?.[7]?.name || data.localityInfo?.administrative?.[8]?.name,
+        house_number: undefined,
+        city: data.city || data.locality,
+        town: data.locality,
+        village: undefined,
+        state: data.principalSubdivision,
+        'ISO3166-2-lvl4': data.principalSubdivisionCode,
+        postcode: data.postcode,
+        country: data.countryName,
+        country_code: data.countryCode?.toLowerCase(),
+      },
+      display_name: data.localityInfo?.informative?.[0]?.description,
+    };
   } catch (error) {
     clearTimeout(timeout);
     throw error;
