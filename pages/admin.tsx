@@ -41,7 +41,7 @@ function VisitCard({ visit, formatDate }: { visit: Visit; formatDate: (date: str
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4 border-b border-white/[0.03] transition-colors hover:bg-white/[0.03] sm:gap-4 sm:p-5 lg:hidden">
+    <div className="flex flex-col gap-3 p-4 border-b border-white/[0.03] transition-colors hover:bg-white/[0.03] sm:gap-4 sm:p-5 xl:hidden">
       {/* Card Header */}
       <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
         <span className="text-sm text-gray-600">#{visit.id}</span>
@@ -88,6 +88,14 @@ function VisitCard({ visit, formatDate }: { visit: Visit; formatDate: (date: str
           </span>
         </div>
 
+        {/* GPS Street Address */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">Street</span>
+          <span className="text-sm" style={{ color: visit.gpsStreetAddress ? '#00ccff' : 'inherit' }}>
+            {visit.gpsStreetAddress || '—'}
+          </span>
+        </div>
+
         {/* Distance */}
         <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
           <span className="text-xs text-gray-600 uppercase">Distance</span>
@@ -108,7 +116,7 @@ function VisitCard({ visit, formatDate }: { visit: Visit; formatDate: (date: str
 
 function VisitTableRow({ visit, formatDate }: { visit: Visit; formatDate: (date: string) => string }) {
   return (
-    <div className="hidden lg:grid lg:grid-cols-[60px_120px_150px_100px_150px_100px_100px_100px_180px] gap-3 py-3 px-5 border-b border-white/[0.03] text-sm transition-colors hover:bg-white/[0.03]">
+    <div className="hidden xl:grid xl:grid-cols-[60px_120px_150px_100px_150px_150px_100px_100px_100px_180px] gap-3 py-3 px-5 border-b border-white/[0.03] text-sm transition-colors hover:bg-white/[0.03]">
       <span className="text-gray-600">#{visit.id}</span>
       <span className="font-medium" style={{ color: '#00ff88' }}>
         {visit.ipAddress}
@@ -120,6 +128,9 @@ function VisitTableRow({ visit, formatDate }: { visit: Visit; formatDate: (date:
       <span>{visit.countryCode || '—'}</span>
       <span className="text-xs" style={{ color: visit.gpsCity ? '#00ccff' : 'inherit' }}>
         {visit.gpsCity ? `${visit.gpsCity}${visit.gpsRegion ? `, ${visit.gpsRegion}` : ''}` : '—'}
+      </span>
+      <span className="text-xs" style={{ color: visit.gpsStreetAddress ? '#00ccff' : 'inherit' }}>
+        {visit.gpsStreetAddress || '—'}
       </span>
       <span className="text-xs" style={{ color: visit.gpsZipCode ? '#00ccff' : 'inherit' }}>
         {visit.gpsZipCode || '—'}
@@ -337,7 +348,7 @@ export default function AdminDashboard() {
           >
             {/* Table Header */}
             <div
-              className="hidden lg:grid lg:grid-cols-[60px_120px_150px_100px_150px_100px_100px_100px_180px] gap-3 py-3.5 px-5 bg-black/30 text-[11px] text-gray-600 uppercase tracking-wide"
+              className="hidden xl:grid xl:grid-cols-[60px_120px_150px_100px_150px_150px_100px_100px_100px_180px] gap-3 py-3.5 px-5 bg-black/30 text-[11px] text-gray-600 uppercase tracking-wide"
               style={{
                 borderBottom: '1px solid rgba(0, 255, 136, 0.1)',
               }}
@@ -347,6 +358,7 @@ export default function AdminDashboard() {
               <span>Location (IP)</span>
               <span>Country</span>
               <span>Location (GPS)</span>
+              <span>Street Address</span>
               <span>GPS ZIP</span>
               <span>GPS Status</span>
               <span>Distance</span>
