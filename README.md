@@ -23,36 +23,74 @@ A sleek, terminal-styled app that displays visitor IP address and geolocation da
 - **Database**: PostgreSQL with Drizzle ORM (3 tables)
 - **Authentication**: bcryptjs + session cookies
 - **Geolocation**: ip-api.com + Nominatim (OpenStreetMap)
-- **Password Hashing**: bcryptjs
-- **Cookie Management**: cookie
+- **Testing**: Jest with ts-jest
+- **Code Quality**: ESLint 9 + TypeScript strict mode
+- **Git Hooks**: Pre-commit and pre-push quality checks
 
 ## Local Development
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22.17.0 (run `nvm use` if using nvm)
 - PostgreSQL installed locally (or use a cloud provider)
 
 ### Setup
 
 ```bash
-# 1. Install dependencies
+# 1. Use correct Node version (if using nvm)
+nvm use
+
+# 2. Install dependencies
 npm install
 
-# 2. Create .env.local with your database URL
+# 3. Configure git hooks (for code quality checks)
+npm run prepare-hooks
+
+# 4. Create .env.local with your database URL
 echo "DATABASE_URL=postgres://username@localhost:5432/ip_locator" > .env.local
 
-# 3. Create the database (if using local PostgreSQL)
+# 5. Create the database (if using local PostgreSQL)
 createdb ip_locator
 
-# 4. Push schema to database
+# 6. Push schema to database
 npm run db:push
 
-# 5. Run development server
+# 7. Run development server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+## Code Quality & Testing
+
+This project uses git hooks to maintain code quality:
+
+### Git Hooks
+
+**Pre-commit** (runs on every commit):
+- ESLint on staged files
+- Jest tests for related test files
+
+**Pre-push** (runs before pushing):
+- Full ESLint check
+- All Jest tests
+- TypeScript type checking
+- npm audit (high+ severity)
+- Production build
+
+**Setup**: Run `npm run prepare-hooks` after cloning.
+
+### Available Scripts
+
+```bash
+npm run lint           # Run ESLint
+npm run lint:fix       # Auto-fix ESLint issues
+npm run type-check     # TypeScript type checking
+npm test               # Run Jest tests
+npm run test:watch     # Jest in watch mode
+npm run test:coverage  # Test coverage report
+npm run audit          # Security audit (high+ severity)
+```
 
 ## Database Management
 
@@ -243,6 +281,10 @@ DATABASE_URL=postgres://username:password@host:port/database
 
 ```
 ip-locator/
+├── .githooks/
+│   ├── pre-commit         # Git pre-commit hook
+│   ├── pre-push           # Git pre-push hook
+│   └── README.md          # Hook documentation
 ├── db/
 │   ├── schema.ts          # Drizzle schema (3 tables)
 │   ├── index.ts           # Database connection
@@ -260,9 +302,14 @@ ip-locator/
 ├── lib/
 │   ├── auth.ts            # Authentication utilities
 │   └── withAuth.ts        # API middleware
+├── utils/
+│   ├── console.ts         # Logging utility
+│   └── console.spec.ts    # Logging tests
 ├── scripts/
 │   └── create-admin.ts    # Admin user creation CLI
+├── .nvmrc                 # Node version (22.17.0)
 ├── drizzle.config.ts      # Drizzle configuration
+├── jest.config.js         # Jest test configuration
 └── .env.local             # Environment variables (not in git)
 ```
 
