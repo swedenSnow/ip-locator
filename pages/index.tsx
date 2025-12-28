@@ -323,15 +323,18 @@ export default function IPLocator() {
             >
               IP LOCATOR FOR FASCISTS AND ZIONISTS
             </h1>
-
-            {loading ? (
-              <p className="mt-3 text-sm text-gray-600">
-                <span style={{ color: '#00ff88' }}>▶</span>
-                Detecting your network signature...
-              </p>
-            ) : (
-              <p className="mt-3 text-sm text-gray-600">Got you 🔻</p>
-            )}
+            <div className="flex justify-center gap-3">
+              {loading ? (
+                <p className="flex gap-3 mt-3 text-sm text-gray-600">
+                  <span style={{ color: '#00ff88' }}>▶</span>
+                  Detecting your network signature...
+                </p>
+              ) : (
+                <p className="mt-0 text-[clamp(32px,8vw,56px)] font-bold m-0 bg-clip-text  -tracking-tight">
+                  🔻
+                </p>
+              )}
+            </div>
           </header>
 
           {/* Main Content */}
