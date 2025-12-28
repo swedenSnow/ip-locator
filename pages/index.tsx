@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import type { GPSData } from './api/location';
 
@@ -278,6 +278,13 @@ export default function IPLocator() {
 
   const isSaved = data?.visitId !== null && data?.visitId !== undefined;
 
+  // Calculate preferred coordinates (GPS if available, fallback to IP)
+  const mapCoords = useMemo(() => {
+    const lat = data?.gpsLat ?? data?.lat;
+    const lon = data?.gpsLon ?? data?.lon;
+    return lat && lon ? { lat, lon } : null;
+  }, [data?.gpsLat, data?.gpsLon, data?.lat, data?.lon]);
+
   return (
     <>
       <Head>
@@ -485,7 +492,7 @@ export default function IPLocator() {
                 </div>
 
                 {/* Map Preview (if we have coordinates) */}
-                {data?.lat && data?.lon && (
+                {mapCoords && (
                   <div
                     className="mt-6 bg-white/[0.02] rounded-xl overflow-hidden"
                     style={{
@@ -502,7 +509,7 @@ export default function IPLocator() {
                       Preview
                     </div>
                     <Link
-                      href={`https://www.openstreetmap.org/?mlat=${data.lat}&mlon=${data.lon}#map=12/${data.lat}/${data.lon}`}
+                      href={`https://www.openstreetmap.org/?mlat=${mapCoords.lat}&mlon=${mapCoords.lon}#map=12/${mapCoords.lat}/${mapCoords.lon}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block p-6 text-center no-underline transition-all hover:bg-[rgba(0,204,255,0.05)]"
