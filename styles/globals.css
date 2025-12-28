@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-green: #00ff88;
+  --color-cyber-blue: #00ccff;
+  --color-cyber-pink: #ff00aa;
+  --color-cyber-dark: #0a0a0f;
+  --color-cyber-gray: #1a1a2e;
+
+  --font-family-mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+  --font-family-space: "Space Grotesk", sans-serif;
+
+  --animate-scanline: scanline 8s linear infinite;
+  --animate-pulse-slow: pulse 1s ease-in-out infinite;
+  --animate-fade-slide-in: fadeSlideIn 0.5s ease forwards;
+  --animate-glitch: glitch 0.3s ease;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  .scanline {
+    @apply fixed top-0 left-0 right-0 h-1 pointer-events-none z-[100];
+    background: linear-gradient(to bottom, transparent, rgba(0, 255, 136, 0.1), transparent);
+    animation: scanline 8s linear infinite;
+  }
+
+  .data-row {
+    @apply opacity-0;
+    animation: fadeSlideIn 0.5s ease forwards;
+  }
+
+  .data-row:hover {
+    background: rgba(0, 255, 136, 0.05);
+    transform: translateX(4px);
+  }
+
+  .glitch-text:hover {
+    animation: glitch 0.3s ease;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-md cursor-pointer font-mono text-sm transition-all duration-200;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    color: #00ff88;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: rgba(0, 255, 136, 0.2);
+  }
+
+  .btn:disabled {
+    @apply opacity-30 cursor-not-allowed;
+  }
+
+  .table-row:hover {
+    background: rgba(0, 255, 136, 0.05);
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glitch {
+  0%, 90%, 100% { transform: translate(0); }
+  92% { transform: translate(-2px, 1px); }
+  94% { transform: translate(2px, -1px); }
+  96% { transform: translate(-1px, 2px); }
+  98% { transform: translate(1px, -2px); }
+}

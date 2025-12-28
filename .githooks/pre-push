@@ -1,0 +1,23 @@
+#!/bin/sh
+
+echo "> Running pre-push hook..."
+
+set -e
+
+echo ">> Running npm audit..."
+npm run audit > /dev/null 2>&1 || { echo "ERROR: Audit failed"; exit 1; }
+
+echo ">> Running linter..."
+npm run lint > /dev/null 2>&1 || { echo "ERROR: Lint failed"; exit 1; }
+
+echo ">> Running tests..."
+npm run test > /dev/null 2>&1 || { echo "ERROR: Tests failed"; exit 1; }
+
+echo ">> Running type check..."
+npx tsc --noEmit > /dev/null 2>&1 || { echo "ERROR: Type check failed"; exit 1; }
+
+echo ">> Running build..."
+npm run build > /dev/null 2>&1 || { echo "ERROR: Build failed"; exit 1; }
+
+echo "✅ All checks passed!"
+exit 0

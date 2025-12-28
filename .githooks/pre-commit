@@ -1,0 +1,42 @@
+#!/bin/sh
+
+echo "> Running pre-commit hook..."
+
+set -e
+
+staged_files=$(git diff --cached --name-only --diff-filter=ACM)
+js_ts_files=$(echo "$staged_files" | grep -E '\.(js|jsx|ts|tsx|json)$' || true)
+
+if [ -n "$js_ts_files" ]; then
+    echo ">> Running ESLint on staged JS/TS files..."
+    echo "$js_ts_files" | xargs npx eslint > /dev/null 2>&1 || {
+        echo "ERROR: ESLint failed"
+        exit 1
+    }
+
+    test_files=""
+    for file in $js_ts_files; do
+        dir=$(dirname "$file")
+        filename=$(basename "$file")
+        extension="${filename##*.}"
+        filename="${filename%.*}"
+        test_file="$dir/$filename.spec.$extension"
+
+        if [ -e "$test_file" ]; then
+            test_files="$test_files $test_file"
+        fi
+    done
+
+    if [ -n "$test_files" ]; then
+        echo ">> Running tests on related test files..."
+        echo "$test_files" | xargs npm run test -- > /dev/null 2>&1 || {
+            echo "ERROR: Tests failed"
+            exit 1
+        }
+    else
+        echo ">> WARNING: No related test files found, skipping tests."
+    fi
+fi
+
+echo "✅ All checks passed!"
+exit 0
