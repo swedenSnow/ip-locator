@@ -13,7 +13,12 @@ const SALT_ROUNDS = 10;
 
 async function createAdmin() {
   const rl = readline.createInterface({ input, output });
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL?.includes('render.com')
+      ? { rejectUnauthorized: false }
+      : undefined,
+  });
 
   try {
     console.log('\n=== Create Admin User ===\n');
