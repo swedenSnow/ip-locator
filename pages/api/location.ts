@@ -52,15 +52,31 @@ async function reverseGeocode(
   lat: number,
   lon: number
 ): Promise<NominatimResponse> {
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
-    {
-      headers: {
-        'User-Agent': 'IP-Locator-App/1.0',
-      },
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'IP-Locator-App/1.0',
+        },
+        signal: controller.signal,
+      }
+    );
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API returned ${response.status}`);
     }
-  );
-  return await response.json();
+
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeout);
+    throw error;
+  }
 }
 
 function calculateDistance(
@@ -220,23 +236,41 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Do reverse geocoding to get address from GPS coordinates
-    const geocodeResult = await reverseGeocode(
-      gpsData.latitude,
-      gpsData.longitude
-    );
+    let city: string | null = null;
+    let region: string | null = null;
+    let regionCode: string | null = null;
+    let country: string | null = null;
+    let countryCode: string | null = null;
+    let zipCode: string | null = null;
+    let streetAddress: string | null = null;
 
-    // Parse address from Nominatim response
-    const address = geocodeResult.address;
-    const city = address?.city || address?.town || address?.village || null;
-    const region = address?.state || null;
-    const regionCode = parseStateCode(address?.['ISO3166-2-lvl4']);
-    const country = address?.country || null;
-    const countryCode = address?.country_code?.toUpperCase() || null;
-    const zipCode = address?.postcode || null;
-    const streetAddress =
-      address?.road && address?.house_number
-        ? `${address.house_number} ${address.road}`
-        : address?.road || null;
+    try {
+      const geocodeResult = await reverseGeocode(
+        gpsData.latitude,
+        gpsData.longitude
+      );
+
+      // Parse address from Nominatim response
+      const address = geocodeResult.address;
+      city = address?.city || address?.town || address?.village || null;
+      region = address?.state || null;
+      regionCode = parseStateCode(address?.['ISO3166-2-lvl4']);
+      country = address?.country || null;
+      countryCode = address?.country_code?.toUpperCase() || null;
+      zipCode = address?.postcode || null;
+      streetAddress =
+        address?.road && address?.house_number
+          ? `${address.house_number} ${address.road}`
+          : address?.road || null;
+    } catch (geocodeError) {
+      // Log the error but continue - we can still save GPS coordinates
+      serverLog(
+        LogLevel.WARN,
+        'api/location/reverse-geocode',
+        `Failed to reverse geocode: ${geocodeError instanceof Error ? geocodeError.message : 'Unknown error'}`
+      );
+      // Address fields remain null, but we'll still save GPS coordinates
+    }
 
     // Calculate distance between IP coordinates and GPS coordinates
     const distance = calculateDistance(
