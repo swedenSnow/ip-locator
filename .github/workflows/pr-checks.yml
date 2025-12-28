@@ -1,0 +1,37 @@
+name: PR Checks
+
+on:
+  pull_request:
+    # Triggers on PRs to any branch
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'  # Uses Node 22.17.0
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        run: npm run type-check
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run security audit
+        run: npm run audit
+
+      - name: Build application
+        run: npm run build
