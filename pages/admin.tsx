@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { validateSession } from '../lib/auth';
 
@@ -27,6 +27,126 @@ interface VisitsResponse {
   visits?: Visit[];
   total?: number;
   error?: string;
+}
+
+function VisitCard({ visit, formatDate }: { visit: Visit; formatDate: (date: string) => string }) {
+  const getStatusBadge = () => {
+    if (visit.gpsPermissionStatus === 'granted') {
+      return <span className="text-xs text-[#00ff88]">✓ Granted</span>;
+    }
+    if (visit.gpsPermissionStatus === 'denied') {
+      return <span className="text-xs text-[#ff0064]">✗ Denied</span>;
+    }
+    return <span className="text-xs text-gray-600">— No data</span>;
+  };
+
+  return (
+    <div className="flex flex-col gap-3 p-4 border-b border-white/[0.03] transition-colors hover:bg-white/[0.03] sm:gap-4 sm:p-5 lg:hidden">
+      {/* Card Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
+        <span className="text-sm text-gray-600">#{visit.id}</span>
+        {getStatusBadge()}
+      </div>
+
+      {/* Card Fields - 2 column grid (label + value) */}
+      <div className="flex flex-col gap-3">
+        {/* IP Address */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">IP Address</span>
+          <span className="text-sm font-medium break-words" style={{ color: '#00ff88' }}>
+            {visit.ipAddress}
+          </span>
+        </div>
+
+        {/* Location (IP) */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">Location (IP)</span>
+          <span className="text-sm break-words">
+            {visit.city}{visit.region ? `, ${visit.region}` : ''}
+          </span>
+        </div>
+
+        {/* Country */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">Country</span>
+          <span className="text-sm">{visit.countryCode || '—'}</span>
+        </div>
+
+        {/* GPS Location */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">Location (GPS)</span>
+          <span className="text-sm" style={{ color: visit.gpsCity ? '#00ccff' : 'inherit' }}>
+            {visit.gpsCity ? `${visit.gpsCity}${visit.gpsRegion ? `, ${visit.gpsRegion}` : ''}` : '—'}
+          </span>
+        </div>
+
+        {/* GPS ZIP */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">GPS ZIP</span>
+          <span className="text-sm" style={{ color: visit.gpsZipCode ? '#00ccff' : 'inherit' }}>
+            {visit.gpsZipCode || '—'}
+          </span>
+        </div>
+
+        {/* Distance */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">Distance</span>
+          <span className="text-sm" style={{ color: visit.locationDistance ? '#00ccff' : 'inherit' }}>
+            {visit.locationDistance ? `${parseFloat(visit.locationDistance).toFixed(2)} km` : '—'}
+          </span>
+        </div>
+
+        {/* Visited At */}
+        <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+          <span className="text-xs text-gray-600 uppercase">Visited</span>
+          <span className="text-xs text-gray-600">{formatDate(visit.visitedAt)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VisitTableRow({ visit, formatDate }: { visit: Visit; formatDate: (date: string) => string }) {
+  return (
+    <div className="hidden lg:grid lg:grid-cols-[60px_120px_150px_100px_150px_100px_100px_100px_180px] gap-3 py-3 px-5 border-b border-white/[0.03] text-sm transition-colors hover:bg-white/[0.03]">
+      <span className="text-gray-600">#{visit.id}</span>
+      <span className="font-medium" style={{ color: '#00ff88' }}>
+        {visit.ipAddress}
+      </span>
+      <span>
+        {visit.city}
+        {visit.region ? `, ${visit.region}` : ''}
+      </span>
+      <span>{visit.countryCode || '—'}</span>
+      <span className="text-xs" style={{ color: visit.gpsCity ? '#00ccff' : 'inherit' }}>
+        {visit.gpsCity ? `${visit.gpsCity}${visit.gpsRegion ? `, ${visit.gpsRegion}` : ''}` : '—'}
+      </span>
+      <span className="text-xs" style={{ color: visit.gpsZipCode ? '#00ccff' : 'inherit' }}>
+        {visit.gpsZipCode || '—'}
+      </span>
+      <span
+        className={`text-xs ${
+          visit.gpsPermissionStatus === 'granted'
+            ? 'text-[#00ff88]'
+            : visit.gpsPermissionStatus === 'denied'
+              ? 'text-[#ff0064]'
+              : 'text-gray-600'
+        }`}
+      >
+        {visit.gpsPermissionStatus
+          ? visit.gpsPermissionStatus === 'granted'
+            ? '✓ Granted'
+            : visit.gpsPermissionStatus === 'denied'
+              ? '✗ Denied'
+              : visit.gpsPermissionStatus
+          : '— No data'}
+      </span>
+      <span className="text-xs" style={{ color: visit.locationDistance ? '#00ccff' : 'inherit' }}>
+        {visit.locationDistance ? `${parseFloat(visit.locationDistance).toFixed(2)} km` : '—'}
+      </span>
+      <span className="text-xs text-gray-600">{formatDate(visit.visitedAt)}</span>
+    </div>
+  );
 }
 
 export default function AdminDashboard() {
@@ -89,7 +209,7 @@ export default function AdminDashboard() {
       </Head>
 
       <div
-        className="min-h-screen p-10 font-mono text-gray-200"
+        className="min-h-screen p-4 sm:p-6 lg:p-10 font-mono text-gray-200"
         style={{
           background:
             'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, rgba(10, 10, 15, 0.8) 100%)',
@@ -113,7 +233,7 @@ export default function AdminDashboard() {
               </button>
             </div>
             <h1
-              className="mb-2 text-3xl text-transparent bg-clip-text"
+              className="mb-2 text-2xl sm:text-3xl text-transparent bg-clip-text"
               style={{
                 fontFamily: '"Space Grotesk", sans-serif',
                 background: 'linear-gradient(135deg, #00ff88, #00ccff)',
@@ -130,7 +250,7 @@ export default function AdminDashboard() {
 
           {/* GPS Statistics */}
           {!loading && visits.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 md:grid-cols-4">
               <div className="bg-white/[0.02] rounded-lg p-4 border border-[rgba(0,255,136,0.2)]">
                 <div className="mb-1 text-xs text-gray-600 uppercase">
                   GPS Granted
@@ -212,10 +332,12 @@ export default function AdminDashboard() {
           <div
             className="bg-white/[0.02] rounded-xl overflow-hidden"
             style={{ border: '1px solid rgba(0, 255, 136, 0.2)' }}
+            role="region"
+            aria-label="Visit logs table"
           >
             {/* Table Header */}
             <div
-              className="grid grid-cols-[60px_120px_150px_100px_150px_100px_100px_100px_180px] gap-3 py-3.5 px-5 bg-black/30 text-[11px] text-gray-600 uppercase tracking-wide"
+              className="hidden lg:grid lg:grid-cols-[60px_120px_150px_100px_150px_100px_100px_100px_180px] gap-3 py-3.5 px-5 bg-black/30 text-[11px] text-gray-600 uppercase tracking-wide"
               style={{
                 borderBottom: '1px solid rgba(0, 255, 136, 0.1)',
               }}
@@ -241,77 +363,13 @@ export default function AdminDashboard() {
             {/* Rows */}
             {!loading &&
               visits.map(visit => (
-                <div
-                  key={visit.id}
-                  className="grid grid-cols-[60px_120px_150px_100px_150px_100px_100px_100px_180px] gap-3 py-3 px-5 border-b border-white/[0.03] text-sm transition-colors"
-                >
-                  <span className="text-gray-600">#{visit.id}</span>
-                  <span className="font-medium" style={{ color: '#00ff88' }}>
-                    {visit.ipAddress}
-                  </span>
-                  <span>
-                    {visit.city}
-                    {visit.region ? `, ${visit.region}` : ''}
-                  </span>
-                  <span>{visit.countryCode || '—'}</span>
+                <React.Fragment key={visit.id}>
+                  {/* Mobile/Tablet Card View */}
+                  <VisitCard visit={visit} formatDate={formatDate} />
 
-                  {/* GPS Location */}
-                  <span
-                    className="text-xs"
-                    style={{
-                      color: visit.gpsCity ? '#00ccff' : 'inherit',
-                    }}
-                  >
-                    {visit.gpsCity
-                      ? `${visit.gpsCity}${visit.gpsRegion ? `, ${visit.gpsRegion}` : ''}`
-                      : '—'}
-                  </span>
-
-                  {/* GPS ZIP */}
-                  <span
-                    className="text-xs"
-                    style={{
-                      color: visit.gpsZipCode ? '#00ccff' : 'inherit',
-                    }}
-                  >
-                    {visit.gpsZipCode || '—'}
-                  </span>
-
-                  {/* GPS Status */}
-                  <span
-                    className={`text-xs ${
-                      visit.gpsPermissionStatus === 'granted'
-                        ? 'text-[#00ff88]'
-                        : visit.gpsPermissionStatus === 'denied'
-                          ? 'text-[#ff0064]'
-                          : 'text-gray-600'
-                    }`}
-                  >
-                    {visit.gpsPermissionStatus
-                      ? visit.gpsPermissionStatus === 'granted'
-                        ? '✓ Granted'
-                        : visit.gpsPermissionStatus === 'denied'
-                          ? '✗ Denied'
-                          : visit.gpsPermissionStatus
-                      : '— No data'}
-                  </span>
-
-                  {/* Distance */}
-                  <span
-                    className="text-xs"
-                    style={{
-                      color: visit.locationDistance ? '#00ccff' : 'inherit',
-                    }}
-                  >
-                    {visit.locationDistance
-                      ? `${parseFloat(visit.locationDistance).toFixed(2)} km`
-                      : '—'}
-                  </span>
-
-                  <span className="text-xs text-gray-600">
-                    {formatDate(visit.visitedAt)}
-                  </span>
-                </div>
+                  {/* Desktop Table Row */}
+                  <VisitTableRow visit={visit} formatDate={formatDate} />
+                </React.Fragment>
               ))}
 
             {/* Empty State */}
@@ -324,7 +382,7 @@ export default function AdminDashboard() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-6">
               <button
                 className="btn"
                 onClick={() => setPage(p => p - 1)}
