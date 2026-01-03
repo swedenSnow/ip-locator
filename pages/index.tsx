@@ -4,6 +4,9 @@ import { useState, useEffect, useMemo } from 'react';
 
 import type { GPSData } from './api/location';
 
+import { AnimatedTriangle } from '../components/AnimatedTriangle';
+import { GooeyText } from '../components/ui/gooey-text';
+import { SparklesCore } from '../components/ui/sparkles';
 import { LogLevel, clientLog } from '../utils/console';
 
 interface LocationData {
@@ -311,18 +314,50 @@ export default function IPLocator() {
               [ System Active ]
             </div>
 
-            <h1
-              className="glitch-text text-[clamp(32px,8vw,56px)] font-bold m-0 bg-clip-text text-transparent -tracking-tight"
+            <div
+              className="h-[80px] flex items-center justify-center"
               style={{
                 fontFamily: '"Space Grotesk", sans-serif',
-                background:
-                  'linear-gradient(135deg, #00ff88 0%, #00ccff 50%, #ff00aa 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
               }}
             >
-              IP LOCATOR FOR FASCISTS AND ZIONISTS
-            </h1>
+              <GooeyText
+                texts={[
+                  'IP LOCATOR',
+                  'FOR',
+                  'FASCISTS',
+                  'AND',
+                  'FILTHY',
+                  'ZIONISTS',
+                ]}
+                morphTime={1}
+                cooldownTime={1.5}
+                className="font-bold -tracking-tight relative z-20"
+                textClassName="text-[clamp(32px,8vw,56px)]"
+              />
+            </div>
+
+            {/* Sparkles Effect */}
+            <div className="w-full max-w-[40rem] h-4 relative mx-auto">
+              {/* Gradients */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-0 bg-gradient-to-r from-transparent via-[#00ff88] to-transparent h-[2px] w-3/4 blur-sm" />
+              <div className="absolute left-1/2 -translate-x-1/2 top-0 bg-gradient-to-r from-transparent via-[#00ff88] to-transparent h-px w-3/4" />
+              <div className="absolute left-1/2 -translate-x-1/2 top-0 bg-gradient-to-r from-transparent via-[#00ccff] to-transparent h-[5px] w-1/4 blur-sm" />
+              <div className="absolute left-1/2 -translate-x-1/2 top-0 bg-gradient-to-r from-transparent via-[#00ccff] to-transparent h-px w-1/4" />
+
+              {/* Core sparkles component */}
+              <SparklesCore
+                background="transparent"
+                minSize={0.4}
+                maxSize={1}
+                particleDensity={1200}
+                className="w-full h-full"
+                particleColor="#00ccff"
+              />
+
+              {/* Radial Gradient to prevent sharp edges - responsive */}
+              <div className="absolute inset-0 w-full h-full [mask-image:radial-gradient(90%_120%_at_top,transparent_20%,white)]"></div>
+            </div>
+
             <div className="flex justify-center gap-3">
               {loading ? (
                 <p className="flex gap-3 mt-3 text-sm text-gray-600">
@@ -330,9 +365,9 @@ export default function IPLocator() {
                   Detecting your network signature...
                 </p>
               ) : (
-                <p className="mt-0 text-[clamp(32px,8vw,56px)] font-bold m-0 bg-clip-text  -tracking-tight">
-                  🔻
-                </p>
+                <div className="mt-3">
+                  <AnimatedTriangle />
+                </div>
               )}
             </div>
           </header>
