@@ -1,13 +1,14 @@
+import bcrypt from 'bcryptjs';
 import { config } from 'dotenv';
 import { resolve } from 'path';
-
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
 
 import { Pool } from 'pg';
 import { stdin as input, stdout as output } from 'process';
 import * as readline from 'readline/promises';
-import bcrypt from 'bcryptjs';
+
+import { LogLevel, serverLog } from '../utils/console';
 
 const SALT_ROUNDS = 10;
 
@@ -21,13 +22,13 @@ async function createAdmin() {
   });
 
   try {
-    console.log('\n=== Create Admin User ===\n');
+    serverLog(LogLevel.INFO, 'create-admin', '\n=== Create Admin User ===\n');
 
     // Get username
     const username = await rl.question('Enter username: ');
 
     if (!username || username.trim().length === 0) {
-      console.error('Error: Username cannot be empty');
+      serverLog(LogLevel.ERROR, 'create-admin', 'Username cannot be empty');
       process.exit(1);
     }
 
@@ -38,7 +39,7 @@ async function createAdmin() {
     );
 
     if (existingCheck.rows.length > 0) {
-      console.error(`Error: User "${username}" already exists`);
+      serverLog(LogLevel.ERROR, 'create-admin', `User "${username}" already exists`);
       process.exit(1);
     }
 
@@ -46,7 +47,7 @@ async function createAdmin() {
     const password = await rl.question('Enter password: ');
 
     if (!password || password.length < 8) {
-      console.error('Error: Password must be at least 8 characters long');
+      serverLog(LogLevel.ERROR, 'create-admin', 'Password must be at least 8 characters long');
       process.exit(1);
     }
 
@@ -54,29 +55,29 @@ async function createAdmin() {
     const confirmPassword = await rl.question('Confirm password: ');
 
     if (password !== confirmPassword) {
-      console.error('Error: Passwords do not match');
+      serverLog(LogLevel.ERROR, 'create-admin', 'Passwords do not match');
       process.exit(1);
     }
 
     // Hash password
-    console.log('\nHashing password...');
+    serverLog(LogLevel.INFO, 'create-admin', 'Hashing password...');
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Insert admin
-    console.log('Creating admin user...');
+    serverLog(LogLevel.INFO, 'create-admin', 'Creating admin user...');
     const result = await pool.query(
       'INSERT INTO admins (username, password_hash) VALUES ($1, $2) RETURNING id, username, created_at',
       [username.trim(), passwordHash]
     );
 
     const admin = result.rows[0];
-    console.log(`\n✓ Admin user "${admin.username}" created successfully!`);
-    console.log(`User ID: ${admin.id}`);
-    console.log(`Created at: ${admin.created_at}\n`);
+    serverLog(LogLevel.INFO, 'create-admin', `Admin user "${admin.username}" created successfully!`);
+    serverLog(LogLevel.INFO, 'create-admin', `User ID: ${admin.id}`);
+    serverLog(LogLevel.INFO, 'create-admin', `Created at: ${admin.created_at}`);
 
     process.exit(0);
   } catch (error) {
-    console.error('\nError creating admin:', error);
+    serverLog(LogLevel.ERROR, 'create-admin', error);
     process.exit(1);
   } finally {
     rl.close();
