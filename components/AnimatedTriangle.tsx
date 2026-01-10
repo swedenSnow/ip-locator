@@ -25,46 +25,58 @@ export function AnimatedTriangle() {
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // Create downward pointing triangle (upside down)
-    const geometry = new THREE.BufferGeometry();
+    // Create 3D pyramid (tetrahedron) - 4 vertices
+    const pyramidGeometry = new THREE.BufferGeometry();
     const vertices = new Float32Array([
-      0.0, -0.5, 0.0,   // bottom vertex (pointing down)
-      -0.5, 0.5, 0.0,   // top left
-      0.5, 0.5, 0.0,    // top right
+      // Base triangle (top)
+      -0.5,
+      0.3,
+      0.0, // vertex 0: top left
+      0.5,
+      0.3,
+      0.0, // vertex 1: top right
+      0.0,
+      0.3,
+      -0.4, // vertex 2: top back (adds depth)
+
+      // Apex (bottom point)
+      0.0,
+      -0.5,
+      -0.2, // vertex 3: bottom apex (centered in Z)
     ]);
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    pyramidGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(vertices, 3)
+    );
 
-    // Define the face indices
-    const indices = new Uint16Array([0, 1, 2]);
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    // Define the 4 triangular faces of the tetrahedron
+    const indices = new Uint16Array([
+      0, 1, 2, // top base triangle
+      0, 1, 3, // front face
+      1, 2, 3, // right face
+      2, 0, 3, // left face
+    ]);
+    pyramidGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
-    // Create invisible material (only wireframe will be visible)
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0,
-      side: THREE.DoubleSide,
-    });
-
-    const triangle = new THREE.Mesh(geometry, material);
-    scene.add(triangle);
-
-    // Add glowing outline
-    const wireframeGeometry = new THREE.EdgesGeometry(geometry);
+    // Extract edges for wireframe rendering
+    const edges = new THREE.EdgesGeometry(pyramidGeometry);
     const wireframeMaterial = new THREE.LineBasicMaterial({
-      color: 0x00ccff,  // Cyan cyberpunk color
+      color: 0x00ccff, // Cyan cyberpunk color
       linewidth: 2,
       transparent: true,
       opacity: 1,
     });
-    const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+    const wireframe = new THREE.LineSegments(edges, wireframeMaterial);
     scene.add(wireframe);
 
-    // Animation
+    // Animation - slow continuous rotation around vertical axis (left to right spin)
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
       if (document.hidden) return;
+
+      // Slow continuous rotation around Y-axis (vertical - spins left to right)
+      wireframe.rotation.y += 0.02;
 
       renderer.render(scene, camera);
     };
@@ -76,15 +88,17 @@ export function AnimatedTriangle() {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (rendererRef.current && container.contains(rendererRef.current.domElement)) {
+      if (
+        rendererRef.current &&
+        container.contains(rendererRef.current.domElement)
+      ) {
         container.removeChild(rendererRef.current.domElement);
       }
       if (rendererRef.current) {
         rendererRef.current.dispose();
       }
-      geometry.dispose();
-      material.dispose();
-      wireframeGeometry.dispose();
+      pyramidGeometry.dispose();
+      edges.dispose();
       wireframeMaterial.dispose();
     };
   }, []);
