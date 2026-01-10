@@ -306,7 +306,7 @@ export default function IPLocator() {
 
         <div className="max-w-[700px] mx-auto">
           {/* Header */}
-          <header className="mb-12 text-center">
+          <header className="mb-4 text-center">
             <div
               className="text-xs tracking-[4px] mb-4 uppercase"
               style={{ color: '#00ff88' }}
@@ -331,8 +331,8 @@ export default function IPLocator() {
                 ]}
                 morphTime={1}
                 cooldownTime={1.5}
-                className="font-bold -tracking-tight relative z-20"
-                textClassName="text-[clamp(32px,8vw,56px)]"
+                className="relative z-20 font-bold -tracking-tight"
+                textClassName="text-[clamp(44px,8vw,56px)]"
               />
             </div>
 
@@ -351,7 +351,7 @@ export default function IPLocator() {
                 maxSize={1}
                 particleDensity={1200}
                 className="w-full h-full"
-                particleColor="#00ccff"
+                particleColor="#00ff88"
               />
 
               {/* Radial Gradient to prevent sharp edges - responsive */}
@@ -365,8 +365,24 @@ export default function IPLocator() {
                   Detecting your network signature...
                 </p>
               ) : (
-                <div className="mt-3">
-                  <AnimatedTriangle />
+                <div className="mt-3 relative w-[160px] h-[160px] mx-auto">
+                  {/* Sparkles background layer */}
+                  <div className="absolute inset-0">
+                    {/* <SparklesCore
+                      background="transparent"
+                      minSize={0.4}
+                      maxSize={1}
+                      particleDensity={100}
+                      className="w-full h-full"
+                      particleColor="#00ccff"
+                    /> */}
+                    {/* Radial gradient mask to soften edges */}
+                    <div className="absolute inset-0 w-full h-full [mask-image:radial-gradient(circle_at_center,white_60%,transparent_100%)]"></div>
+                  </div>
+                  {/* Triangle on top */}
+                  <div className="relative z-10">
+                    <AnimatedTriangle />
+                  </div>
                 </div>
               )}
             </div>
